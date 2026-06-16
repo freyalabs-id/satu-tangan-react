@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #15120f;
+  --color-surface: #1e1914;
+  --color-slip: #1a1610;
+  --color-line: #2f2820;
+  --color-line2: #48402f;
+  --color-ink: #f4ede0;
+  --color-soft: #b0a590;
+  --color-pop: #d9705a;
+  --color-g1: #5cba84;
+  --color-g2: #e8a23c;
+  --color-g3: #d95a45;
+
+  --font-mono: 'Space Mono', ui-monospace, Menlo, monospace;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+
+  --spacing-safe-top: env(safe-area-inset-top);
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
+}
+
+body {
+  line-height: 1.55;
+  font-optical-sizing: auto;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+@layer components {
+  .label {
+    @apply font-mono text-[11px] tracking-[0.12em] uppercase text-soft/60;
+  }
+  .pill {
+    @apply text-[11px] px-[6px] py-[3px] rounded-md font-mono cursor-pointer;
+  }
+}
+
+.eff-Low { background: rgba(92, 186, 132, 0.12); color: var(--color-g1); }
+.eff-Med { background: rgba(232, 162, 60, 0.12); color: var(--color-g2); }
+.eff-High { background: rgba(217, 90, 69, 0.14); color: var(--color-g3); }
+
+.pay-Unpaid { background: rgba(217, 90, 69, 0.12); color: var(--color-g3); }
+.pay-DP { background: rgba(232, 162, 60, 0.12); color: var(--color-g2); }
+.pay-Lunas { background: rgba(92, 186, 132, 0.12); color: var(--color-g1); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+  }
+}

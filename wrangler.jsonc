@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "satu-tangan",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2025-06-14",
+  "observability": { "enabled": true },
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "satu_tangan_db",
+      "database_name": "satu-tangan-db",
+      "database_id": "83d7befd-0f13-4bf8-b71e-79d6ba47d9fa"
+    }
+  ]
+}

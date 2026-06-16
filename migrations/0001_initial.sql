@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  token TEXT NOT NULL,
+  pin_hash TEXT NOT NULL DEFAULT '',
+  pin_salt TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  design TEXT NOT NULL DEFAULT '',
+  eff TEXT NOT NULL DEFAULT 'Med',
+  qty INTEGER NOT NULL DEFAULT 1,
+  price INTEGER NOT NULL DEFAULT 0,
+  date TEXT NOT NULL DEFAULT '',
+  time TEXT NOT NULL DEFAULT '12:00',
+  addr TEXT NOT NULL DEFAULT '',
+  pay TEXT NOT NULL DEFAULT 'Unpaid',
+  stage TEXT NOT NULL DEFAULT 'Confirmed',
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  user_id TEXT PRIMARY KEY,
+  cap INTEGER NOT NULL DEFAULT 6,
+  lead INTEGER NOT NULL DEFAULT 12,
+  designs TEXT NOT NULL DEFAULT '[]',
+  icon TEXT NOT NULL DEFAULT 'balloon',
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
