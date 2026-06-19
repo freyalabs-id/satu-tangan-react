@@ -1,12 +1,13 @@
-import { CONFIG } from './config';
-import { parseDateTime, craftBy, rupiah } from './domain';
-import type { Order } from '../types';
+const CRAFT_ALARM_OFFSET = 0;
+const DELIVERY_ALARM_LEAD = 30;
+const TZ_NAME = 'Asia/Jakarta';
+const DEFAULT_LEAD = 12;
 
-function pad(n: number): string {
+function pad(n) {
   return String(n).padStart(2, '0');
 }
 
-function icsDate(date: Date): string {
+function icsDate(date) {
   return (
     date.getUTCFullYear() +
     pad(date.getUTCMonth() + 1) +
@@ -19,7 +20,7 @@ function icsDate(date: Date): string {
   );
 }
 
-function escapeText(str: string): string {
+function escapeText(str) {
   return (str || '')
     .replace(/\\/g, '\\\\')
     .replace(/;/g, '\\;')
@@ -27,7 +28,22 @@ function escapeText(str: string): string {
     .replace(/\n/g, '\\n');
 }
 
-function buildCraftEvent(order: Order, lead: number): string {
+function parseDateTime(dateStr, timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return new Date(`${dateStr}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00+07:00`);
+}
+
+function craftBy(order, lead = DEFAULT_LEAD) {
+  const delivery = parseDateTime(order.date, order.time);
+  return new Date(delivery.getTime() - lead * 3600000);
+}
+
+function rupiah(n) {
+  if (typeof n !== 'number' || !Number.isInteger(n)) return 'Rp 0';
+  return `Rp ${n.toLocaleString('id-ID')}`;
+}
+
+function buildCraftEvent(order, lead) {
   const cb = craftBy(order, lead);
   const dtStart = icsDate(cb);
   const now = icsDate(new Date());
@@ -35,12 +51,12 @@ function buildCraftEvent(order: Order, lead: number): string {
   const sequence = order.updatedAt ? Math.floor(new Date(order.updatedAt).getTime() / 1000) : 0;
 
   let alarm = '';
-  if (CONFIG.CRAFT_ALARM_OFFSET >= 0) {
+  if (CRAFT_ALARM_OFFSET >= 0) {
     alarm = [
       'BEGIN:VALARM',
       'ACTION:DISPLAY',
       `DESCRIPTION:Waktunya membuat ${escapeText(order.design || 'pesanan')} untuk ${escapeText(order.name)}`,
-      `TRIGGER:-PT${CONFIG.CRAFT_ALARM_OFFSET}M`,
+      `TRIGGER:-PT${CRAFT_ALARM_OFFSET}M`,
       'END:VALARM',
     ].join('\r\n');
   }
@@ -68,7 +84,7 @@ function buildCraftEvent(order: Order, lead: number): string {
   ].filter(Boolean).join('\r\n');
 }
 
-function buildDeliveryEvent(order: Order): string {
+function buildDeliveryEvent(order) {
   const delivery = parseDateTime(order.date, order.time);
   const dtStart = icsDate(delivery);
   const now = icsDate(new Date());
@@ -78,8 +94,8 @@ function buildDeliveryEvent(order: Order): string {
   const alarm = [
     'BEGIN:VALARM',
     'ACTION:DISPLAY',
-    `DESCRIPTION:Pengiriman ${escapeText(order.design || 'pesanan')} ke ${escapeText(order.name)} dalam ${CONFIG.DELIVERY_ALARM_LEAD} menit`,
-    `TRIGGER:-PT${CONFIG.DELIVERY_ALARM_LEAD}M`,
+    `DESCRIPTION:Pengiriman ${escapeText(order.design || 'pesanan')} ke ${escapeText(order.name)} dalam ${DELIVERY_ALARM_LEAD} menit`,
+    `TRIGGER:-PT${DELIVERY_ALARM_LEAD}M`,
     'END:VALARM',
   ].join('\r\n');
 
@@ -106,8 +122,8 @@ function buildDeliveryEvent(order: Order): string {
   ].filter(Boolean).join('\r\n');
 }
 
-export function icsForOrder(order: Order, opts: { craft?: boolean; delivery?: boolean } = {}, lead = CONFIG.DEFAULT_LEAD): string {
-  const events: string[] = [];
+export function icsForOrder(order, opts = {}, lead = DEFAULT_LEAD) {
+  const events = [];
   if (opts.craft !== false) events.push(buildCraftEvent(order, lead));
   if (opts.delivery !== false) events.push(buildDeliveryEvent(order));
 
@@ -118,27 +134,7 @@ export function icsForOrder(order: Order, opts: { craft?: boolean; delivery?: bo
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:Satu Tangan Pesanan',
-    `X-WR-TIMEZONE:${CONFIG.TZ_NAME}`,
-    ...events,
-    'END:VCALENDAR',
-  ].join('\r\n') + '\r\n';
-}
-
-export function icsForMany(orders: Order[], opts: { craft?: boolean; delivery?: boolean } = {}, lead = CONFIG.DEFAULT_LEAD): string {
-  const events: string[] = [];
-  for (const order of orders) {
-    if (opts.craft !== false) events.push(buildCraftEvent(order, lead));
-    if (opts.delivery !== false) events.push(buildDeliveryEvent(order));
-  }
-
-  return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Satu Tangan//Pesanan Balon//ID',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'X-WR-CALNAME:Satu Tangan Pesanan',
-    `X-WR-TIMEZONE:${CONFIG.TZ_NAME}`,
+    `X-WR-TIMEZONE:${TZ_NAME}`,
     ...events,
     'END:VCALENDAR',
   ].join('\r\n') + '\r\n';

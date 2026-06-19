@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_BASE || '';
+export const BASE = import.meta.env.VITE_API_BASE || '';
 
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem('st_auth_token');

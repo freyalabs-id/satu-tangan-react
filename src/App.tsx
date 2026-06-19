@@ -8,9 +8,8 @@ import { useToast } from './hooks/useToast';
 import { useSelectionMode } from './hooks/useSelectionMode';
 import { CONFIG } from './lib/config';
 import { advanceStage, cyclePayment, todayStats, stageLabel, payLabel } from './lib/domain';
-import { icsForOrder } from './lib/reminders';
-import { emitFile } from './lib/share';
 import { formatExport } from './lib/export';
+import { BASE } from './api/client';
 import LogoIcon from './components/LogoIcon';
 import AuthPrompt from './components/AuthPrompt';
 import StatsBar from './components/StatsBar';
@@ -193,14 +192,21 @@ function MainApp({ auth: { username, logout } }: { auth: ReturnType<typeof useAu
     selection.exit();
   }
 
-  async function handleOrderReminder(order: Order) {
-    try {
-      const ics = icsForOrder(order, { craft: true, delivery: true }, curSettings.lead);
-      await emitFile(ics, 'text/calendar', `pengingat-${order.name}.ics`);
-      toast('Pengingat ditambahkan', 'success');
-    } catch {
-      toast('Gagal menambah pengingat', 'error');
+  function handleOrderReminder(order: Order) {
+    const token = localStorage.getItem('st_auth_token');
+    if (!token) {
+      toast('Sesi berakhir', 'error');
+      return;
     }
+    const url = `${BASE}/api/orders/${order.id}/ics?t=${encodeURIComponent(token)}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('Membuka kalender…', 'info');
   }
 
   async function handleExport() {
