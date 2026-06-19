@@ -45,8 +45,7 @@ export async function onRequest(context) {
     status: 200,
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': `inline; filename="pengingat-${order.name}.ics"`,
-      'Cache-Control': 'no-store',
+      'Content-Disposition': `attachment; filename="pengingat-${order.name}.ics"`,
       ...corsHeaders(),
     },
   });
